@@ -1,0 +1,21 @@
+{
+	"mqtt": {
+		"broker":"localhost",
+		"port": 1883
+	},
+	"dsm": {
+		"url":"",
+		"instance":"",
+		"key":""
+	},
+	"topics": {
+		"sensors/bedroom/temperature": {
+			"metric": "bedroom_temperature",
+			"labels": {
+				"room": "bedroom",
+				"sensorType": "temperature",
+				"sensorId": 1
+			}
+		}
+	}
+}

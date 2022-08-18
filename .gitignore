@@ -1,0 +1,6 @@
+build/
+DesignSpark.Cloud.egg-info/
+dist/
+venv/
+_build/
+*.pyc
