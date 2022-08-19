@@ -12,42 +12,39 @@ from datetime import datetime
 from urllib.parse import urlparse
 import calendar
 import copy
-from prometheus_api_client import PrometheusConnect
 from . import validator
 
 class Metric:
     """ This class handles interfacing with the DesignSpark Cloud.
 
-    :param cloudType: A string containing either "prometheus" or "influxdb". Defaults to "prometheus".
-    :type cloudType: string, optional
+    :param backendType: A string containing "prometheus". Defaults to "prometheus".
+    :type backendType: string, optional
 
-    :param cloudConfig: A dictionary containing the following configuration data:
+    :param instance: DSM Instance number
+    :type instance: string
 
-    .. code-block:: text
+    :param key: DSM authentication key
+    :type key: string
 
-        {
-            "instance": "123456",
-            "key": "authentication key",
-            "url": "DSM URL",
-            "bucket": "InfluxDB bucket name"
-        }
+    :param url: DSM URL
+    :type url: string
 
-    .. note:: The "bucket" key is only necessary when cloudType is set to "influxdb"
+    .. note:: Prometheus is currently the only supported backend. Additional backends will be available in future.
 
-    :type cloudConfig: dict
     """
-    def __init__(self, cloudType="prometheus", cloudConfig=None):
-        if cloudConfig == None:
+    def __init__(self, backendType="prometheus", instance=None, key=None, url=None):
+        if instance == None or instance == "" or key == None or key == "" or url == None or url == "":
             raise Exception("No cloud connection configuration provided")
         else:
-            if cloudType == "prometheus":
-                self.cloudType = "prometheus"
-                self.cloudConfig = cloudConfig
+            if backendType == "prometheus":
+                self.backendType = "prometheus"
+                self.instance = instance
+                self.key = key
+                self.url = url
                 self.validator = validator.Validator("prometheus")
-                self.validator.validateCloudConfig(cloudConfig)
-            elif cloudType == "influxdb":
+            elif backendType == "influxdb":
                 raise Exception("InfluxDB support not implemented")
-                self.cloudType = "influxdb"
+                self.backendType = "influxdb"
                 self.validator = validator.Validator("influxdb")
 
     def __dt2ts(self, dt):
@@ -60,6 +57,7 @@ class Metric:
         """ Writes a single data point to the specfied cloud.
 
         :param data: A dictionary containing the metric data to be published. Labels are optional and can have multiple, 'name' and 'value' keys are mandatory.
+        :type data: dict
 
         .. code-block:: text
 
@@ -74,7 +72,7 @@ class Metric:
         :rtype: boolean, list
 
         """
-        if self.cloudType == "prometheus":
+        if self.backendType == "prometheus":
             self.validator.validateMetricNames(data)
 
             writeRequest = prometheus_pb2.WriteRequest()
@@ -100,9 +98,9 @@ class Metric:
             uncompressedRequest = writeRequest.SerializeToString()
             compressedRequest = snappy.compress(uncompressedRequest)
 
-            username = self.cloudConfig["instance"]
-            password = self.cloudConfig["key"]
-            baseUrl = self.cloudConfig["url"]
+            username = self.instance
+            password = self.key
+            baseUrl = self.url
             splitUrl = urlparse(baseUrl)
 
             # Rebuild URL
@@ -126,23 +124,21 @@ class Metric:
             else:
                 return False, response.status_code, response.text
 
-        if self.cloudType == "influxdb":
+        if self.backendType == "influxdb":
             pass
 
-    def getPrometheusConnect(self):
-        """ Helper function that creates an instance of PrometheusConnect.
+    def getReadURI(self):
+        """ Helper function that returns a connection URL to DSM.
         
-        :return: An instance of PrometheusConnect configured with DesignSpark Cloud connection details
-        :rtype: PrometheusConnect
+        :return: A string configured with DesignSpark Cloud connection details
+        :rtype: string
 
         """
 
-        if self.cloudType != "prometheus":
-            raise Exception("Wrong cloud type configured to be able to call getPrometheusConnect")
-        else:
-            username = self.cloudConfig["instance"]
-            password = self.cloudConfig["key"]
-            baseUrl = self.cloudConfig["url"]
+        if self.backendType == "prometheus":
+            username = self.instance
+            password = self.key
+            baseUrl = self.url
             splitUrl = urlparse(baseUrl)
 
             # Rebuild URL
@@ -152,4 +148,6 @@ class Metric:
                 url=splitUrl.netloc, \
                 path=splitUrl.path)
 
-            return PrometheusConnect(url=url)
+            return url
+        else:
+            raise Exception("Invalid backend type specified")

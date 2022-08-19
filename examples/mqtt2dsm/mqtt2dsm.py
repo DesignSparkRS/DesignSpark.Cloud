@@ -1,4 +1,4 @@
-from DesignSpark.Cloud.Metrics import Metric
+from DesignSpark.Cloud import Metrics
 import json
 import paho.mqtt.client as mqtt
 import copy
@@ -57,11 +57,11 @@ def main():
 
 	configData = json.loads(fileData)
 
-	PROMETHEUS_CONFIG = configData['dsm']
+	DSM_CONFIG = configData['dsm']
 	TOPICS_CONFIG = configData['topics']
 	MQTT_CONFIG = configData['mqtt']
 
-	writer = Metric.Metric(cloudConfig=PROMETHEUS_CONFIG)
+	writer = Metrics.Metric(instance=DSM_CONFIG['instance'], key=DSM_CONFIG['key'], url=DSM_CONFIG['url'])
 
 	if "username" and "password" in MQTT_CONFIG.items():
 		client.username_pw_set(MQTT_CONFIG["username"], MQTT_CONFIG["password"])
