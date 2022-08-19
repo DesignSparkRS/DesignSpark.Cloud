@@ -23,7 +23,7 @@ This application demonstrates the use of the prometheus-api-client_ module to re
 
 The application imports both the ``Metric`` module and also ``prometheus_api_client`` which provides functions for retrieving and manipulating metrics.
 
-The metric class is instantiated just as before in the ``simple_writer.py`` example, and the function ``metric.getPrometheusConnect()`` is called. This function returns a configured instance of ``prometheus_api_client.prometheus_connect.PrometheusConnect()`` that will connect to the DesignSpark Cloud using the provided credentials.
+The metric class is instantiated just as before in the ``simple_writer.py`` example, and the function ``metric.getReadURI()`` is called. This function returns a URI that can be passed into an instance of ``prometheus_api_client.prometheus_connect.PrometheusConnect()`` that will then connect to the DesignSpark Cloud using the provided credentials.
 
 A metric series called "test_metric" (the same as what is written in ``simple_writer.py``) is retrieved with a start and end date provided. A number of additional arguments are available, which are described in the prometheus_api_client_ documentation.
 
