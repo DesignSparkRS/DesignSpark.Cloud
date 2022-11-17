@@ -88,7 +88,7 @@ class Metric:
                     label.value = str(value)
                 elif key == "value":
                     sample = series.samples.add()
-                    sample.value = int(value)
+                    sample.value = float(value)
                     sample.timestamp = self.__dt2ts(datetime.utcnow()) * 1000
                 elif key not in ['name', 'value']:
                     label = series.labels.add()
