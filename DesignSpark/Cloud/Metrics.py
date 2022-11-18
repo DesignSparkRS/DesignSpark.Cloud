@@ -56,8 +56,10 @@ class Metric:
     def write(self, data):
         """ Writes a single data point to the specfied cloud.
 
-        :param data: A dictionary containing the metric data to be published. Labels are optional and can have multiple, 'name' and 'value' keys are mandatory.
+        :param data: A dictionary containing the metric data to be published. Labels are optional and multiple can be supplied, `name` and `value` keys are mandatory.
         :type data: dict
+
+        The metric value should only be a float or integer, other types will be casted using `float()` which may fail.
 
         .. code-block:: text
 
