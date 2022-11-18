@@ -6,4 +6,4 @@
 A Python library for use with the DesignSpark Cloud.
 """
 
-__version__ = '22.8.0'
+__version__ = '22.11.0'
