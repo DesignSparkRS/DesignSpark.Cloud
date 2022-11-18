@@ -62,5 +62,66 @@ A section called ``dsm`` is mandatory and must contains keys called ``url``, ``i
 
 The final section is called ``topics`` and contains a number of objects where the object key is the MQTT topic to be subscribed to — in the example we've used ``sensors/bedroom/temperature``. Each topic object must contain a key called ``metric`` which is the name of the metric. An optional section called ``labels`` can be included which then becomes labels on the data point within DesignSpark Cloud.
 
+``BatteryTest.py``
+------------------
+
+This application interfaces with an RS Pro electronic load to perform battery discharge tests and logs data to DesignSpark Cloud.
+
+Command line switches
+~~~~~~~~~~~~~~~~~~~~~
+
+A number of command line switches are present
+
++------------+------------+---------------------------------------------------+---------+-------------------------------------------------------+
+| Short name | Long name  | Description                                       | Type    | Example                                               |
++============+============+===================================================+=========+=======================================================+
+| -d         | --device   | The PyVISA device string                          | String  | -d "ASRL6::INSTR"                                     |
++------------+------------+---------------------------------------------------+---------+-------------------------------------------------------+
+| -b         | --baud     | The PyVISA device baud rate                       | Integer | -b 115200                                             |
++------------+------------+---------------------------------------------------+---------+-------------------------------------------------------+
+| -c         | --capacity | The battery capacity to discharge to in amp-hours | Integer | -c 110                                                |
++------------+------------+---------------------------------------------------+---------+-------------------------------------------------------+
+| -a         | --amperage | The discharge current in amps                     | Float   | -a 5                                                  |
++------------+------------+---------------------------------------------------+---------+-------------------------------------------------------+
+| -v         | --voltage  | The low voltage cut off point in volts            | Float   | -v 10.5                                               |
++------------+------------+---------------------------------------------------+---------+-------------------------------------------------------+
+| -t         | --time     | Time to discharge cut off in minutes              | Integer | -t 10                                                 |
++------------+------------+---------------------------------------------------+---------+-------------------------------------------------------+
+| -i         | --instance | DesignSpark Cloud instance                        | String  | -i 123456                                             |
++------------+------------+---------------------------------------------------+---------+-------------------------------------------------------+
+| -u         | --url      | DesignSpark Cloud URL                             | String  | -u "https://prometheus-prod-01-eu-west-0.grafana.net" |
++------------+------------+---------------------------------------------------+---------+-------------------------------------------------------+
+| -k         | --key      | DesignSpark Cloud key                             | String  | -k "YOUR_AUTHENTICATION_KEY"                          |
++------------+------------+---------------------------------------------------+---------+-------------------------------------------------------+
+| -n         | --name     | Battery name label                                | String  | -n "Battery123"                                       |
++------------+------------+---------------------------------------------------+---------+-------------------------------------------------------+
+
+An example command: ``python3 BatteryTest.py -d "ASRL6::INSTR" -b 115200 -c 10 -a 2.5 -t 10 -v 10.5 -i 123456 -k "YOUR_AUTH_KEY" -u "https://prometheus-prod-01-eu-west-0.grafana.net" -n "batterytest"``
+
+Code explanation
+~~~~~~~~~~~~~~~~
+
+.. literalinclude:: ../examples/BatteryTest.py
+	:lines: 26-34
+
+The script first attempts to parse all the required command line arguments, then creates an object for communicating with the instrument. An instrument query ``*IDN?`` is executed that asks the instrument to identify itself, which is then printed to the console.
+
+.. literalinclude:: ../examples/BatteryTest.py
+	:lines: 41-51
+
+A string is compiled that attempts to program a battery test regime on the electronic load, sent to the instrument and the input turned on which starts the discharge programme.
+
+.. literalinclude:: ../examples/BatteryTest.py
+	:lines: 53-72
+
+The instrument is polled once every second whilst the input is switched on, with readings of current capacity, voltage and current added to a list to be averaged. All the information is logged to the console.
+
+.. literalinclude:: ../examples/BatteryTest.py
+	:lines: 75-95
+
+Once every minute an average of the last sixty seconds of data points is computed and published to DesignSpark Cloud.
+
+The while loop exits once the input is turned off, which is automatically performed by the instrument when a cut off point is achieved (one or more of voltage, capacity or time). After the loop exits one last set of queries is made to the instrument to get capacity and time, which is then published to DesignSpark Cloud. This information is also mirrored to the console.
+
 .. _prometheus-api-client: https://pypi.org/project/prometheus-api-client/
 .. _prometheus_api_client: https://prometheus-api-client-python.readthedocs.io/en/master/source/prometheus_api_client.html
