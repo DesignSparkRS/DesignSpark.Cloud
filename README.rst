@@ -1,6 +1,9 @@
 DesignSpark.Cloud
 =================
 
+.. image:: https://raw.githubusercontent.com/DesignSparkRS/DesignSpark.Cloud/main/docs/images/DesignSpark_Cloud_Library.png
+   :alt: Logo
+
 Python library to support the DesignSpark Cloud.
 
 Features include:
